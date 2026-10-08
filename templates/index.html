@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phishing Email Detection System</title>
+    <!-- Include Bootstrap CSS -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --term-green: #00FF66;
+            --term-green-dim: #009933;
+            --term-red: #FF3366;
+            --term-bg: #0A0D12;
+            --term-panel: #111620;
+            --term-border: #1E2838;
+        }
+
+        body {
+            background-color: var(--term-bg);
+            color: #D1D5DB;
+            font-family: 'Courier New', Courier, monospace;
+            padding-bottom: 60px;
+        }
+
+        .header-title {
+            text-align: center;
+            color: var(--term-green);
+            text-shadow: 0 0 10px rgba(0, 255, 102, 0.4);
+            margin-top: 30px;
+            margin-bottom: 5px;
+            font-weight: bold;
+            letter-spacing: 2px;
+        }
+
+        .header-sub {
+            text-align: center;
+            color: #6B7280;
+            margin-bottom: 30px;
+            font-size: 0.95rem;
+        }
+
+        /* Nav Tabs */
+        .nav-tabs {
+            border-bottom: 1px solid var(--term-border);
+            margin-bottom: 25px;
+        }
+
+        .nav-tabs .nav-link {
+            background: transparent;
+            color: #9CA3AF;
+            border: 1px solid transparent;
+            border-top-left-radius: 6px;
+            border-top-right-radius: 6px;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+
+        .nav-tabs .nav-link:hover {
+            color: var(--term-green);
+            border-color: var(--term-border) var(--term-border) transparent;
+        }
+
+        .nav-tabs .nav-link.active {
+            background: var(--term-panel);
+            color: var(--term-green);
+            border: 1px solid var(--term-border);
+            border-bottom-color: var(--term-panel);
+            box-shadow: 0 -2px 10px rgba(0, 255, 102, 0.15);
+        }
+
+        /* Card Panels */
+        .card-panel {
+            background-color: var(--term-panel);
+            border: 1px solid var(--term-border);
+            border-radius: 8px;
+            padding: 24px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+        }
+
+        .form-control {
+            background-color: #06080C;
+            border: 1px solid #2D3748;
+            color: #E2E8F0;
+            font-family: monospace;
+            border-radius: 6px;
+        }
+
+        .form-control:focus {
+            background-color: #06080C;
+            border-color: var(--term-green);
+            color: #FFFFFF;
+            box-shadow: 0 0 8px rgba(0, 255, 102, 0.3);
+        }
+
+        label {
+            color: var(--term-green);
+            font-size: 0.85rem;
+            font-weight: bold;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        /* Buttons */
+        .btn-cyber {
+            background-color: var(--term-green);
+            color: #000000;
+            font-weight: bold;
+            border: none;
+            padding: 10px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            letter-spacing: 1px;
+            transition: all 0.2s ease;
+        }
+
+        .btn-cyber:hover {
+            background-color: #00CC52;
+            color: #000;
+            box-shadow: 0 0 15px rgba(0, 255, 102, 0.4);
+        }
+
+        .btn-preset {
+            background-color: #1A2232;
+            color: #94A3B8;
+            border: 1px solid #2D3B50;
+            font-size: 0.8rem;
+            padding: 6px 12px;
+            margin-right: 8px;
+            margin-bottom: 8px;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+        }
+
+        .btn-preset:hover {
+            background-color: #243046;
+            color: #FFFFFF;
+            border-color: var(--term-green);
+        }
+
+        /* Status & Alert Badges */
+        .result-box {
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+            animation: fadeIn 0.4s ease-in-out;
+        }
+
+        .result-phishing {
+            background-color: rgba(255, 51, 102, 0.1);
+            border: 2px solid var(--term-red);
+            box-shadow: 0 0 20px rgba(255, 51, 102, 0.2);
+        }
+
+        .result-safe {
+            background-color: rgba(0, 255, 102, 0.1);
+            border: 2px solid var(--term-green);
+            box-shadow: 0 0 20px rgba(0, 255, 102, 0.2);
+        }
+
+        .badge-phishing {
+            background-color: var(--term-red);
+            color: #FFFFFF;
+            font-size: 1.1rem;
+            padding: 6px 14px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+
+        .badge-safe {
+            background-color: var(--term-green);
+            color: #000000;
+            font-size: 1.1rem;
+            padding: 6px 14px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+
+        /* List Items */
+        ul#emailResults {
+            list-style-type: none;
+            padding-left: 0;
+            margin-top: 20px;
+        }
+
+        ul#emailResults li {
+            padding: 12px 16px;
+            background-color: #0E131C;
+            border: 1px solid #1F2A3C;
+            border-left: 5px solid var(--term-green);
+            margin-bottom: 12px;
+            border-radius: 6px;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: opacity 0.4s ease, transform 0.4s ease;
+        }
+
+        ul#emailResults li.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        ul#emailResults li.phishing {
+            border-left-color: var(--term-red);
+            background-color: rgba(255, 51, 102, 0.05);
+        }
+
+        .url-tag {
+            background: #1A2232;
+            color: #60A5FA;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            display: inline-block;
+            margin-top: 4px;
+            word-break: break-all;
+        }
+
+        .ip-tag {
+            color: #FBBF24;
+            font-weight: bold;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-8px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container" style="max-width: 900px;">
+        <h1 class="header-title">🛡️ PHISHING EMAIL DETECTION</h1>
+        <p class="header-sub">Trained Machine Learning Model (TF-IDF Vectorizer + Logistic Regression)</p>
+
+        <!-- System Alert / Error -->
+        {% if status_error %}
+        <div class="alert alert-warning" style="background-color: rgba(234, 179, 8, 0.15); border: 1px solid #EAB308; color: #FDE047;">
+            <strong>Notice:</strong> {{ status_error }}
+        </div>
+        {% endif %}
+
+        <div class="card-panel">
+            <div class="mb-3">
+                <span style="font-size: 0.8rem; color: #9CA3AF; margin-right: 8px;">Quick Test Samples:</span>
+                <button type="button" class="btn btn-preset" onclick="loadSample('phishing1')">🚨 Urgent PayPal Phishing</button>
+                <button type="button" class="btn btn-preset" onclick="loadSample('phishing2')">🚨 Bank Security Alert</button>
+                <button type="button" class="btn btn-preset" onclick="loadSample('safe1')">✅ Team Project Update</button>
+                <button type="button" class="btn btn-preset" onclick="loadSample('safe2')">✅ Order Confirmation</button>
+            </div>
+
+            <form method="POST">
+                <div class="form-group">
+                    <label for="subjectInput">Email Subject</label>
+                    <input type="text" class="form-control" id="subjectInput" name="subject"
+                           placeholder="e.g. Urgent: Account Verification Required" value="{{ input_subject }}">
+                </div>
+
+                <div class="form-group">
+                    <label for="bodyInput">Email Body / Content</label>
+                    <textarea class="form-control" id="bodyInput" name="body" rows="6"
+                              placeholder="Paste the email text or suspicious message body here...">{{ input_body }}</textarea>
+                </div>
+
+                <button type="submit" class="btn btn-cyber">
+                    ⚡ RUN DETECTION MODEL
+                </button>
+            </form>
+
+            <!-- Direct Analysis Result -->
+            {% if single_result %}
+            <div class="result-box {% if single_result['is_phishing'] %}result-phishing{% else %}result-safe{% endif %}">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <span class="{% if single_result['is_phishing'] %}badge-phishing{% else %}badge-safe{% endif %}">
+                        {% if single_result['is_phishing'] %}⚠️ PHISHING DETECTED{% else %}✓ SAFE EMAIL{% endif %}
+                    </span>
+                    <span style="font-size: 1.1rem; color: #FFF; font-weight: bold;">
+                        Confidence: {{ single_result['confidence'] }}%
+                    </span>
+                </div>
+
+                <p class="mb-2"><strong>Subject:</strong> {{ single_result['subject'] or '(No Subject)' }}</p>
+
+                {% if single_result['urls'] %}
+                <div class="mt-3">
+                    <strong style="color: var(--term-green);">Extracted URLs & IP Lookups:</strong>
+                    <div class="mt-1">
+                        {% for url, ip in single_result['urls'].items() %}
+                        <div class="url-tag">
+                            🔗 {{ url }} <span class="ip-tag">&rarr; IP: {{ ip }}</span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% else %}
+                <p class="text-muted mb-0" style="font-size: 0.85rem;">No external links/URLs detected in email body.</p>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+    <script>
+        const sampleEmails = {
+            phishing1: {
+                subject: "Urgent: Your PayPal Account Has Been Suspended",
+                body: "Dear Customer,\n\nWe detected suspicious unauthorized login attempts on your PayPal account from an unrecognized IP address. For your security, your account access has been temporarily limited.\n\nPlease verify your identity immediately to restore your account:\nhttp://paypal-security-verification-center.com/login\n\nIf you do not verify within 24 hours, your account will be permanently deactivated.\n\nThank you,\nPayPal Security Team"
+            },
+            phishing2: {
+                subject: "Security Alert: Unauthorized Withdrawal of $1,250.00",
+                body: "Dear Customer,\n\nA wire transfer of $1,250.00 was requested from your online banking account.\nIf you did NOT authorize this transaction, please cancel it immediately by clicking the secure link below:\nhttps://chase-fraud-prevention-alert.net/cancel?ref=892341\n\nFailure to act now may result in financial loss.\n\nFraud Prevention Center"
+            },
+            safe1: {
+                subject: "Sprint Planning Notes & Project Timeline",
+                body: "Hi team,\n\nThanks for attending today's sprint planning session. Here are the key action items for this week:\n- Abhishek will review the model evaluation metrics.\n- Rahul will finalize the database schema migration.\n- Next sync is scheduled for Thursday at 10:00 AM.\n\nPlease find the updated project board here: https://github.com/project/board\n\nBest regards,\nDev Lead"
+            },
+            safe2: {
+                subject: "Your Order #408-291823 has been shipped",
+                body: "Hello,\n\nGood news! Your recent order #408-291823 is on its way. You can track your shipment using the tracking number below:\nCarrier: FedEx\nTracking: https://www.fedex.com/fedextrack/?trknbr=987123654\nEstimated Delivery: Tomorrow by 8:00 PM.\n\nThank you for shopping with us!"
+            }
+        };
+
+        function loadSample(key) {
+            if (sampleEmails[key]) {
+                document.getElementById('subjectInput').value = sampleEmails[key].subject;
+                document.getElementById('bodyInput').value = sampleEmails[key].body;
+            }
+        }
+    </script>
+</body>
+
+</html>
